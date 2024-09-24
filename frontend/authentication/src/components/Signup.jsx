@@ -1,10 +1,15 @@
 import React, { useState } from 'react'
+import apiError from '../../../../backend/src/utils/apiError'
 function Signup() {
+    const [errMessage, setErrMessage] = useState("")
+    const [userSigninSuccessfull, setUserSigninSucessfull] = useState(false)
     const [signUpUser, setSignUpUser] = useState({
         fullname: "",
         email: "",
         password: ""
     })
+
+    //  add a validation check that if the user register with the sa
 
     const inputOnChange = (event) => {
         const { name, value } = event.target
@@ -17,12 +22,13 @@ function Signup() {
 
     const handleSubmit = async (event) => {
         event.preventDefault()
+        setUserSigninSucessfull(false)
         const { fullname, email, password } = signUpUser
-        console.log(fullname, email, password);
 
         if (!fullname || !email || !password) {
-            throw new Error("All fields are required")
+            setErrMessage("All fields are required")
         }
+
         try {
             const response = await fetch("http://localhost:3000/users/register", {
                 method: "POST",
@@ -31,13 +37,32 @@ function Signup() {
                 },
                 body: JSON.stringify(signUpUser)
             })
+
             if (!response.ok) {
                 const errorData = await response.json();
-                throw new Error(errorData.message || "Registration failed");
+                console.log(errorData, "Error data");
+
+                if (errorData.message === "User with this email is already registered") {
+                    throw new apiError("This email is already registered. Please use a different email")
+                }
+                else {
+                    setErrMessage(errorData.message || "Registration failed")
+                }
             }
+
             const data = await response.json();
             console.log("User registered successfully:", data);
-        } catch (error) {
+            setUserSigninSucessfull(true)
+
+            setSignUpUser({
+                fullname: "",
+                email: "",
+                password: ""
+            })
+
+
+        }
+        catch (error) {
             console.log("Error occured", error)
         }
     }
@@ -64,6 +89,7 @@ function Signup() {
                                     id="fullname"
                                     name="fullname"
                                     type="text"
+                                    value={signUpUser.fullname}
                                     className="block w-full rounded-md border-0 py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm sm:leading-6" />
                             </div>
                         </div>
@@ -79,6 +105,7 @@ function Signup() {
                                     id="email"
                                     name="email"
                                     type="email"
+                                    value={signUpUser.email}
                                     autoComplete="email"
                                     required className="block w-full rounded-md border-0 py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm sm:leading-6" />
                             </div>
@@ -100,6 +127,8 @@ function Signup() {
                                     onChange={inputOnChange}
                                     name="password"
                                     type="password"
+                                    value={signUpUser.password}
+
                                     autoComplete="current-password"
                                     required
                                     className="block w-full rounded-md border-0 py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm sm:leading-6" />
@@ -120,6 +149,9 @@ function Signup() {
                         Not a member?
                         <a href="#" className="font-semibold leading-6 text-indigo-600 hover:text-indigo-500">Start a 14 day free trial</a>
                     </p>
+                </div>
+                <div>
+                    {userSigninSuccessfull ? <h1>User sign in successfull</h1> : ""}
                 </div>
             </div>
         </>

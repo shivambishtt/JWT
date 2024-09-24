@@ -33,7 +33,10 @@ const registerUser = asyncHandler(async (req, res) => {
   }
   const userExist = await User.findOne({ email });
   if (userExist) {
-    throw new apiError("User with this email is already registered");
+    // return res
+    //   .status(401)
+    //   .json(new apiError("User with this email is already registered"));
+    throw new apiError("User with this email is already registered", 401);
   }
   const user = await User.create({
     fullname,

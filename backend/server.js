@@ -20,6 +20,20 @@ app.use(
   })
 );
 
+app.use((err, req, res, next) => {
+  if (err instanceof apiError) {
+    return res.status(err.errStatus || 500).json({
+      message: err.errMessage,
+      data: err.data || null,
+    });
+  }
+
+  // Handle other types of errors
+  return res.status(500).json({
+    message: "Internal Server Error",
+  });
+});
+
 // secured routes
 import userRouter from "./src/routes/user.routes.js";
 app.use("/users", userRouter);
